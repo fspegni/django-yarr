@@ -8,6 +8,7 @@ import urllib2
 
 from django.core.validators import URLValidator
 from django.db import models
+from django.utils import timezone
 
 import feedparser
 # ++ TODO: tags
@@ -276,7 +277,8 @@ class Feed(models.Model):
             self.save()
         
         # Remove expired entries
-        self.entries.filter(expires__lte=datetime.datetime.now()).delete()
+        now = timezone.now()
+        self.entries.filter(expires__lte=now).delete()
         
     def _do_check(self, force, read, logfile):
         """
@@ -293,7 +295,8 @@ class Feed(models.Model):
         logfile.write("[%s] %s" % (self.pk, self.feed_url))
         
         # Check it's due for a check before the next poll
-        now = datetime.datetime.now()
+        #now = datetime.datetime.now()
+        now = timezone.now()
         next_poll = now + datetime.timedelta(minutes=settings.MINIMUM_INTERVAL)
         if (
             not force
@@ -530,7 +533,7 @@ class Entry(models.Model):
     def save(self, *args, **kwargs):
         # Default the date
         if self.date is None:
-            self.date = datetime.datetime.now()
+            self.date = timezone.now() #datetime.datetime.now()
         
         # Save
         super(Entry, self).save(*args, **kwargs)
